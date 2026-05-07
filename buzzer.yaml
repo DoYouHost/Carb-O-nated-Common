@@ -1,0 +1,44 @@
+output:
+  - platform: gpio
+    pin: ${PIN_BUZZER}
+    id: output_buzzer
+
+switch:
+  - platform: template
+    id: switch_buzzer_confirmation
+    name: "Buzzer Confirmation"
+    icon: "mdi:bullhorn"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: switch_buzzer
+    name: "Buzzer"
+    icon: "mdi:volume-high"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - output.turn_on: output_buzzer
+    turn_off_action:
+      - output.turn_off: output_buzzer
+
+script:
+  - id: startup_buzzer
+    then:
+      - output.turn_on: output_buzzer
+      - delay: 100ms
+      - output.turn_off: output_buzzer
+      - delay: 200ms
+      - output.turn_on: output_buzzer
+      - delay: 100ms
+      - output.turn_off: output_buzzer
+
+  - id: buzzer_beep_short
+    then:
+      - if:
+          condition:
+            switch.is_on: switch_buzzer_confirmation
+          then:
+            - output.turn_on: output_buzzer
+            - delay: 50ms
+            - output.turn_off: output_buzzer

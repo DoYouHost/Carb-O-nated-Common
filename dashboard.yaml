@@ -1,0 +1,53 @@
+select:
+  - platform: template
+    name: "Dashboard Language"
+    id: dashboard_language
+    icon: "mdi:translate"
+    optimistic: true
+    options:
+      - "English"
+      - "Polski"
+      - "Deutsch"
+      - "Français"
+      - "Español"
+    initial_option: "English"
+    restore_value: true
+    on_value:
+      then:
+        - lambda: |-
+            if (x == "English")       current_language = LANG_EN;
+            else if (x == "Polski")   current_language = LANG_PL;
+            else if (x == "Deutsch")  current_language = LANG_DE;
+            else if (x == "Français") current_language = LANG_FR;
+            else if (x == "Español")  current_language = LANG_ES;
+
+text_sensor:
+  - platform: template
+    name: "CO2 Air Quality Level"
+    id: co2_level_text
+    icon: "mdi:molecule-co2"
+    update_interval: 60s
+    lambda: |-
+      AirQualityLevel level = get_co2_level_cached(id(scd4x_co2).state);
+      return {get_aq_label_en(level.type)};
+
+  - platform: template
+    name: "CO Air Quality Level"
+    id: co_level_text
+    icon: "mdi:molecule-co"
+    update_interval: 60s
+    lambda: |-
+      AirQualityLevel level = get_co_level_cached(id(mq7_co).state);
+      return {get_aq_label_en(level.type)};
+
+  - platform: template
+    name: "Air Quality Level"
+    id: air_quality_level_text
+    icon: "mdi:air-filter"
+    update_interval: 60s
+    lambda: |-
+      AirQualityLevelType worst = worst_level({
+        get_co2_level_cached(id(scd4x_co2).state).type,
+        get_co_level_cached(id(mq7_co).state).type
+      });
+      return {get_aq_label_en(worst)};

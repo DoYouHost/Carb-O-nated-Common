@@ -1,0 +1,65 @@
+light:
+  - platform: esp32_rmt_led_strip
+    rgb_order: GRB
+    pin: "${WS2812B_PIN}"
+    num_leds: "${WS2812B_COUNT}"
+    chipset: WS2812
+    id: led_strip
+    internal: true
+    max_refresh_rate: 16ms
+    effects:
+      - addressable_lambda:
+          name: "Wave"
+          update_interval: 16ms
+          lambda: |-
+            float t = fmodf(millis() / 1000.0f, 628.318f);
+            float max_b = id(led_strip_max_brightness).state / 100.0f;
+            AirQualityLevelType worst = worst_level({
+              get_co2_level_cached(id(scd4x_co2).state).type,
+              get_co_level_cached(id(mq7_co).state).type
+            });
+            Color aq = get_level_color(worst);
+            for (int i = 0; i < it.size(); i++) {
+              float b = (sinf(t * 2.0f + i * 2.094395f) * 0.35f + 0.65f) * max_b;
+              it[i] = Color(
+                (uint8_t)(aq.r * b),
+                (uint8_t)(aq.g * b),
+                (uint8_t)(aq.b * b)
+              );
+            }
+
+number:
+  - platform: template
+    name: "LED Strip Max Brightness"
+    id: led_strip_max_brightness
+    icon: "mdi:brightness-percent"
+    unit_of_measurement: "%"
+    min_value: 0
+    max_value: 100
+    step: 1
+    initial_value: 100
+    mode: slider
+    optimistic: true
+    restore_value: true
+
+switch:
+  - platform: template
+    name: "LED Strip"
+    id: switch_led_strip
+    icon: "mdi:led-strip"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - lambda: |-
+          auto call = id(led_strip).turn_on();
+          call.set_effect("Wave");
+          call.perform();
+    turn_off_action:
+      - light.turn_off: led_strip
+
+  - platform: template
+    id: switch_led_strip_auto
+    name: "LED Strip Auto"
+    icon: "mdi:led-strip-variant"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF

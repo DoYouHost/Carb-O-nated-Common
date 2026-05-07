@@ -63,3 +63,22 @@ switch:
     icon: "mdi:led-strip-variant"
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
+
+datetime:
+  - platform: template
+    id: light_on_time
+    name: "Light On Time"
+    icon: "mdi:weather-sunset-up"
+    type: time
+    optimistic: true
+    restore_value: true
+    initial_value: "07:00:00"
+
+  - platform: template
+    id: light_off_time
+    name: "Light Off Time"
+    icon: "mdi:weather-sunset-down"
+    type: time
+    optimistic: true
+    restore_value: true
+    initial_value: "22:00:00"

@@ -1,4 +1,8 @@
 substitutions:
+  MQ7_HEATER_PIN: GPIO25
+  MQ7_ANALOG_PIN: GPIO36
+  MQ7_LOW_SIDE_RESISTOR: "1000"
+  MQ7_HIGH_SIDE_RESISTOR: "470"
   MQ7_TEMP_SENSOR_ID: scd4x_temperature
   MQ7_HUM_SENSOR_ID: scd4x_humidity
 

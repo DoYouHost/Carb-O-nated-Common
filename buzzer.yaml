@@ -1,3 +1,6 @@
+substitutions:
+  PIN_BUZZER: GPIO2
+
 output:
   - platform: gpio
     pin: ${PIN_BUZZER}

@@ -1,3 +1,7 @@
+substitutions:
+  WS2812B_PIN: GPIO26
+  WS2812B_COUNT: "3"
+
 light:
   - platform: esp32_rmt_led_strip
     rgb_order: GRB

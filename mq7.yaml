@@ -1,0 +1,119 @@
+substitutions:
+  MQ7_TEMP_SENSOR_ID: scd4x_temperature
+  MQ7_HUM_SENSOR_ID: scd4x_humidity
+
+output:
+  - platform: gpio
+    pin: ${MQ7_HEATER_PIN}
+    id: mq7_heater_pin
+
+switch:
+  - platform: output
+    id: mq7_heater
+    internal: true
+    output: mq7_heater_pin
+
+binary_sensor:
+  - platform: template
+    name: "MQ7 Heater"
+    icon: mdi:fire
+    entity_category: diagnostic
+    lambda: return id(mq7_heater).state;
+
+number:
+  - platform: template
+    name: "MQ7 Clean Air Resistance"
+    id: mq7_clean_air_compensated_resistance
+    icon: mdi:omega
+    entity_category: config
+    unit_of_measurement: Ω
+    min_value: 1000
+    max_value: 500000
+    step: 100
+    initial_value: 55000
+    optimistic: true
+    restore_value: true
+
+sensor:
+  - platform: adc
+    id: mq7_raw
+    name: "MQ7 Voltage"
+    entity_category: diagnostic
+    disabled_by_default: true
+    pin: ${MQ7_ANALOG_PIN}
+    attenuation: auto
+    update_interval: never
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 5
+
+  - platform: resistance
+    id: mq7_resistance
+    name: "MQ7 Resistance"
+    icon: mdi:omega
+    entity_category: diagnostic
+    disabled_by_default: true
+    sensor: mq7_raw
+    configuration: UPSTREAM
+    resistor: ${MQ7_LOW_SIDE_RESISTOR}
+    reference_voltage: 5.0V
+    filters:
+      - lambda: return (x - ${MQ7_HIGH_SIDE_RESISTOR});
+    on_value:
+      then:
+        - component.update: mq7_compensated_resistance
+
+  - platform: template
+    id: mq7_compensated_resistance
+    name: "MQ7 Compensated Resistance"
+    icon: mdi:omega
+    entity_category: diagnostic
+    unit_of_measurement: Ω
+    lambda: |-
+      return (id(mq7_resistance).state / ( -0.01223333 * id(${MQ7_TEMP_SENSOR_ID}).state -0.00609615 * id(${MQ7_HUM_SENSOR_ID}).state + 1.70860897));
+    update_interval: never
+    on_value:
+      then:
+        - component.update: mq7_ratio
+
+  - platform: template
+    id: mq7_ratio
+    name: "MQ7 Ratio"
+    icon: mdi:percent
+    entity_category: diagnostic
+    disabled_by_default: true
+    unit_of_measurement: "%"
+    lambda: |-
+      return 100.0 * (id(mq7_compensated_resistance).state / id(mq7_clean_air_compensated_resistance).state);
+    update_interval: never
+    on_value:
+      then:
+        - component.update: mq7_co
+
+  - platform: template
+    id: mq7_co
+    name: "CO Concentration"
+    unit_of_measurement: "ppm"
+    device_class: carbon_monoxide
+    lambda: |-
+      float ratio = id(mq7_ratio).state;
+      if (isnan(ratio) || ratio <= 0.0f) return NAN;
+      auto ratio_ln = log(ratio / 100.0);
+      float result = exp(-0.685204 - 2.67936 * ratio_ln - 0.488075 * ratio_ln * ratio_ln - 0.07818 * ratio_ln * ratio_ln * ratio_ln);
+      if (isnan(result) || result < 0.0f) return NAN;
+      return result;
+    update_interval: never
+
+interval:
+  - interval: 150s
+    then:
+      - switch.turn_on: mq7_heater
+      - delay: 55s
+      - switch.turn_off: mq7_heater
+      - delay: 90s
+      - repeat:
+          count: 5
+          then:
+            - component.update: mq7_raw
+            - delay: 20ms

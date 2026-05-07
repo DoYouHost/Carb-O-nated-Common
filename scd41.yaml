@@ -1,0 +1,102 @@
+globals:
+  - id: temperature_offset
+    type: float
+    restore_value: true
+    initial_value: "0.0"
+
+  - id: humidity_offset
+    type: float
+    restore_value: true
+    initial_value: "0.0"
+
+sensor:
+  - platform: scd4x
+    address: 0x62
+    id: co2_sensor
+    update_interval: 5s
+    automatic_self_calibration: true
+    measurement_mode: periodic
+    co2:
+      name: "CO2 Concentration"
+      id: scd4x_co2
+      unit_of_measurement: "ppm"
+      filters:
+        - skip_initial: 12
+        - exponential_moving_average:
+            alpha: 0.3
+            send_every: 6
+    temperature:
+      id: scd4x_temperature
+      internal: true
+      unit_of_measurement: "°C"
+      filters:
+        - skip_initial: 12
+        - exponential_moving_average:
+            alpha: 0.3
+            send_every: 6
+    humidity:
+      id: scd4x_humidity
+      internal: true
+      unit_of_measurement: "%"
+      filters:
+        - skip_initial: 12
+        - exponential_moving_average:
+            alpha: 0.3
+            send_every: 6
+
+  - platform: copy
+    source_id: scd4x_temperature
+    id: scd4x_temperature_copy
+    name: "SCD4x Temperature"
+    filters:
+      - lambda: return x + id(temperature_offset);
+
+  - platform: copy
+    source_id: scd4x_humidity
+    id: scd4x_humidity_copy
+    name: "SCD4x Humidity"
+    filters:
+      - lambda: return x + id(humidity_offset);
+
+number:
+  - platform: template
+    name: "Temperature Offset"
+    id: temperature_offset_number
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    step: 0.1
+    min_value: -10.0
+    max_value: 10.0
+    initial_value: 0.0
+    mode: box
+    restore_value: true
+    optimistic: true
+    on_value:
+      then:
+        - lambda: id(temperature_offset) = x;
+
+  - platform: template
+    name: "Humidity Offset"
+    id: humidity_offset_number
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    step: 0.1
+    min_value: -20.0
+    max_value: 20.0
+    mode: box
+    initial_value: 0.0
+    restore_value: true
+    optimistic: true
+    on_value:
+      then:
+        - lambda: id(humidity_offset) = x;
+
+button:
+  - platform: template
+    name: "SCD4x Factory Reset"
+    entity_category: config
+    icon: "mdi:restart-alert"
+    on_press:
+      then:
+        - logger.log: "Performing SCD4x Factory Reset"
+        - scd4x.factory_reset: co2_sensor

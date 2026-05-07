@@ -1,0 +1,5 @@
+esphome:
+  includes:
+    - air_quality_levels.h
+    - translations.h
+    - display_helpers.h

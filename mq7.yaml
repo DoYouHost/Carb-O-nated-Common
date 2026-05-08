@@ -75,7 +75,9 @@ sensor:
     entity_category: diagnostic
     unit_of_measurement: Ω
     lambda: |-
-      return (id(mq7_resistance).state / ( -0.01223333 * id(${MQ7_TEMP_SENSOR_ID}).state -0.00609615 * id(${MQ7_HUM_SENSOR_ID}).state + 1.70860897));
+      float temp = isnan(id(${MQ7_TEMP_SENSOR_ID}).state) ? 21.0f : id(${MQ7_TEMP_SENSOR_ID}).state;
+      float hum = isnan(id(${MQ7_HUM_SENSOR_ID}).state) ? 45.0f : id(${MQ7_HUM_SENSOR_ID}).state;
+      return (id(mq7_resistance).state / ( -0.01223333 * temp -0.00609615 * hum + 1.70860897));
     update_interval: never
     on_value:
       then:

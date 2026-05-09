@@ -1,5 +1,24 @@
 substitutions:
   PM1006_UART_ID: pm1006_uart
+  PM1006_FAN_PIN: GPIO18
+
+output:
+  - platform: gpio
+    pin: ${PM1006_FAN_PIN}
+    id: pm1006_fan_pin
+
+switch:
+  - platform: output
+    id: pm1006_fan
+    internal: true
+    output: pm1006_fan_pin
+
+binary_sensor:
+  - platform: template
+    name: "PM1006 Fan"
+    icon: mdi:fan
+    entity_category: diagnostic
+    lambda: return id(pm1006_fan).state;
 
 sensor:
   - platform: pm1006
@@ -9,8 +28,13 @@ sensor:
       id: pm1006_pm_2_5
       unit_of_measurement: "µg/m³"
       name: "PM 2.5µm Concentration"
-      filters:
-        - sliding_window_moving_average:
-            window_size: 3
-            send_every: 3
-    update_interval: 20s
+    update_interval: none
+
+interval:
+  - interval: 180s
+    then:
+      - switch.turn_on: pm1006_fan
+      - delay: 10s
+      - component.update: pm1006_sensor
+      - delay: 1s
+      - switch.turn_off: pm1006_fan

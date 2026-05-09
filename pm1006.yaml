@@ -1,0 +1,16 @@
+substitutions:
+  PM1006_UART_ID: pm1006_uart
+
+sensor:
+  - platform: pm1006
+    uart_id: ${PM1006_UART_ID}
+    id: pm1006_sensor
+    pm_2_5:
+      id: pm1006_pm_2_5
+      unit_of_measurement: "µg/m³"
+      name: "PM 2.5µm Concentration"
+      filters:
+        - throttle_average:
+            window_size: 3
+            send_every: 3
+    update_interval: 20s

@@ -28,7 +28,7 @@ sensor:
       id: pm1006_pm_2_5
       unit_of_measurement: "µg/m³"
       name: "PM 2.5µm Concentration"
-    update_interval: none
+    update_interval: 'none'
 
 interval:
   - interval: 180s

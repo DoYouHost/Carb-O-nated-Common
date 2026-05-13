@@ -22,6 +22,25 @@ inline const char* get_text(const char* en, const char* pl, const char* de, cons
 inline const char* get_initializing()      { return get_text("INITIALIZING",       "INICJALIZACJA",                    "INITIALISIERUNG",        "INITIALISATION",              "INICIALIZANDO");      }
 inline const char* get_warming_up()        { return get_text("Warming up sensors",  "Rozgrzewanie czujnik\xc3\xb3w",    "Sensoren aufw\xc3\xa4rmen", "Pr\xc3\xa9""chauffage capteurs", "Calentando sensores"); }
 
+inline const char* get_warming_up_line1() {
+  return get_text(
+    "Sensors warming up.",            // EN — glyphs: S e n s o r s   w a r m i n g   u p .
+    "Sensory robi\xc4\x85 rozgrzewk\xc4\x99.", // PL — adds: y b \xc4\x85(ą) z k \xc4\x99(ę)
+    "Sensoren w\xc3\xa4rmen auf.",    // DE — adds: \xc3\xa4(ä) f
+    "Capteurs en chauffe.",           // FR — adds: C p t h
+    "Sensores calentando."            // ES — adds: c l d
+  );
+}
+inline const char* get_warming_up_line2() {
+  return get_text(
+    "Air will wait.",                     // EN — glyphs: A i r   w l a t .
+    "Powietrze i tak nie ucieknie.",      // PL — adds: P o e z k n u c
+    "Die Luft wartet.",                   // DE — adds: D L f
+    "Patience un instant.",               // FR — adds: s
+    "El aire espera."                     // ES — adds: E p
+  );
+}
+
 // ── Sensor labels ─────────────────────────────────────────────────────────────
 inline const char* get_label_co2()         { return get_text("CO2",       "CO2",                          "CO2",               "CO2",                 "CO2");       }
 inline const char* get_label_co()          { return get_text("CO",        "CO",                           "CO",                "CO",                  "CO");        }
